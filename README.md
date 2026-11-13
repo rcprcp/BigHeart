@@ -42,7 +42,8 @@ python3 tools/make_fonts.py
 
 1. Build the app.
 2. Connect the watch by USB. It mounts as a removable drive.
-3. Copy `bin/BigHeart.prg` into the watch's `GARMIN/APPS/` folder.
+3. Either run `./install.sh`, or copy `bin/BigHeart.prg` into the watch's
+   `GARMIN/APPS/` folder manually.
 4. Eject the watch, then choose **Big Heart** from the watch-face picker
    (Settings → Appearance → Watch Faces). A reboot may be needed on some
    firmware versions.
