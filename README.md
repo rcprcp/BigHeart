@@ -235,3 +235,8 @@ rejected and any runtime crash details.
 ## Font credit
 
 The bitmap fonts are generated from **Liberation Sans Narrow Bold**.
+
+## License
+
+Licensed under the Apache License, Version 2.0.
+See [LICENSE.md](LICENSE.md).
