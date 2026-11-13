@@ -53,8 +53,12 @@ cat >&2 <<'MSG'
 No Garmin watch filesystem found.
 
 On the watch:
-  1. Hold UP -> System -> USB Mode -> MTP (some firmware says Mass Storage).
+  1. Find USB Mode and select MTP (some firmware says Mass Storage).
+     Path is either System -> USB Mode, or Watch Settings -> System ->
+     Advanced -> USB Mode, depending on firmware.
      Do not use "Garmin" mode; it only charges / prompts.
+     If you cannot find it, leave the default: the watch normally enters MTP
+     automatically when connected to a computer.
   2. Use the Garmin data cable, not a charge-only cable.
 
 On this Linux computer:

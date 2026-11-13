@@ -44,8 +44,11 @@ The Forerunner 265 exposes its storage over **MTP**, not as a normal USB
 drive. Linux therefore will not show it as a block device in `lsblk`.
 
 1. Build the app.
-2. On the watch, hold **UP** → **System** → **USB Mode** and choose **MTP**
-   (some firmware labels it *Mass Storage*). Do not use *Garmin* mode.
+2. On the watch, find **USB Mode** and choose **MTP** (some firmware labels it
+   *Mass Storage*). Do not use *Garmin* mode. Depending on firmware the path is
+   either **UP → System → USB Mode** or **UP → Watch Settings → System →
+   Advanced → USB Mode**. If you cannot find it, leave the default: the watch
+   normally enters MTP automatically when connected to a computer.
 3. Connect the watch with the Garmin data cable, not a charge-only cable.
 4. On Linux, GNOME Files normally mounts the watch automatically. Then run
    `./install.sh`. It finds both GNOME's MTP mount and older FAT-style Garmin
