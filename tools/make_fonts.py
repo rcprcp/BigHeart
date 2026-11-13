@@ -22,6 +22,8 @@ FONTS = [
     ("hr_large", 195),
     ("hr_small", 156),
     ("spo2", 104),
+    ("hr_ambient", 120),
+    ("spo2_ambient", 72),
 ]
 
 PROBE_SIZE = 1000

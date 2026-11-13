@@ -19,25 +19,20 @@ class BigHeartView extends WatchUi.WatchFace {
     private const COLOR_SPO2 = 0x4FB6FF;
     private const COLOR_TIME = 0x9A9A9A;
 
-    // Ambient / always-on colours. Drawn with thin strokes so the face
-    // stays inside Garmin's AMOLED luminance and burn-in rules.
+    // Ambient / always-on colours. Smaller numerals and dim colours keep the
+    // face inside Garmin's AMOLED luminance and burn-in rules.
     private const COLOR_HR_AMBIENT = 0xA05050;
     private const COLOR_SPO2_AMBIENT = 0x3E7C9C;
     private const COLOR_TIME_AMBIENT = 0x606060;
 
-    private const HR_LARGE_HEIGHT = 195;
-    private const HR_SMALL_HEIGHT = 156;
-    private const SPO2_HEIGHT = 104;
-
     private var _width as Number = 416;
     private var _height as Number = 416;
     private var _centerX as Number = 208;
-    private var _centerY as Number = 208;
-    private var _radius as Number = 204;
-
     private var _hrLarge as Graphics.FontReference? = null;
     private var _hrSmall as Graphics.FontReference? = null;
     private var _spo2 as Graphics.FontReference? = null;
+    private var _hrAmbient as Graphics.FontReference? = null;
+    private var _spo2Ambient as Graphics.FontReference? = null;
 
     private var _hrText as String = "--";
     private var _spo2Text as String = "--";
@@ -54,14 +49,12 @@ class BigHeartView extends WatchUi.WatchFace {
         _width = dc.getWidth();
         _height = dc.getHeight();
         _centerX = _width / 2;
-        _centerY = _height / 2;
-
-        var smallestSide = _width < _height ? _width : _height;
-        _radius = smallestSide / 2 - 6;
 
         _hrLarge = WatchUi.loadResource(Rez.Fonts.HrLarge) as Graphics.FontReference;
         _hrSmall = WatchUi.loadResource(Rez.Fonts.HrSmall) as Graphics.FontReference;
         _spo2 = WatchUi.loadResource(Rez.Fonts.Spo2) as Graphics.FontReference;
+        _hrAmbient = WatchUi.loadResource(Rez.Fonts.HrAmbient) as Graphics.FontReference;
+        _spo2Ambient = WatchUi.loadResource(Rez.Fonts.Spo2Ambient) as Graphics.FontReference;
     }
 
     function onShow() as Void {
@@ -130,10 +123,10 @@ class BigHeartView extends WatchUi.WatchFace {
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    //! Ambient mode uses thin strokes instead of the filled font. The filled
-    //! font at this size would exceed the luminance budget that protects an
-    //! AMOLED panel in always-on mode. A small offset is applied each minute
-    //! so no pixel stays on long enough to burn in.
+    //! Ambient mode keeps the same normal font and layout, but uses smaller
+    //! numerals and dim colours so the face stays within the AMOLED luminance
+    //! budget. Offsetting the readout each minute also avoids leaving the same
+    //! pixels lit for long periods.
     private function drawAmbient(dc as Graphics.Dc, clock as System.ClockTime) as Void {
         var shift = ambientShift(clock.min);
 
@@ -142,14 +135,15 @@ class BigHeartView extends WatchUi.WatchFace {
                     formatTime(clock),
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
-        var ambientHrHeight = _hrText.length() <= 2 ? HR_LARGE_HEIGHT : HR_SMALL_HEIGHT;
-        SegmentFont.draw(dc, _hrText, _centerX, scaledY(0.373), scaledHeight(ambientHrHeight),
-                         _width - 24, _centerX, _centerY, _radius,
-                         COLOR_HR_AMBIENT, true, shift[0], shift[1]);
+        dc.setColor(COLOR_HR_AMBIENT, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(_centerX + shift[0], scaledY(0.373) + shift[1],
+                    _hrAmbient as Graphics.FontReference, _hrText,
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
-        SegmentFont.draw(dc, _spo2Text, _centerX, scaledY(0.788), scaledHeight(SPO2_HEIGHT),
-                         _width - 24, _centerX, _centerY, _radius,
-                         COLOR_SPO2_AMBIENT, true, shift[0], shift[1]);
+        dc.setColor(COLOR_SPO2_AMBIENT, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(_centerX + shift[0], scaledY(0.788) + shift[1],
+                    _spo2Ambient as Graphics.FontReference, _spo2Text,
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     //! Use the largest font that still fits inside the circle for the number
@@ -163,10 +157,6 @@ class BigHeartView extends WatchUi.WatchFace {
 
     private function scaledY(fraction as Float) as Number {
         return (_height * fraction).toNumber();
-    }
-
-    private function scaledHeight(pixels as Number) as Number {
-        return (pixels * _height / 416.0).toNumber();
     }
 
     private function formatTime(clock as System.ClockTime) as String {

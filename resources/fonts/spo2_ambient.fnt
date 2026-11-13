@@ -1,0 +1,16 @@
+info face="BigHeart spo2_ambient" size=-102 bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=0 aa=0 padding=0,0,0,0 spacing=1,1 outline=0
+common lineHeight=72 base=71 scaleW=524 scaleH=76 pages=1 packed=0 alphaChnl=1 redChnl=0 greenChnl=0 blueChnl=0
+page id=0 file="spo2_ambient.png"
+chars count=11
+char id=48 x=2 y=2 width=47 height=72 xoffset=0 yoffset=0 xadvance=47 page=0 chnl=15
+char id=49 x=51 y=3 width=47 height=70 xoffset=0 yoffset=1 xadvance=47 page=0 chnl=15
+char id=50 x=100 y=2 width=47 height=71 xoffset=0 yoffset=0 xadvance=47 page=0 chnl=15
+char id=51 x=149 y=2 width=47 height=72 xoffset=0 yoffset=0 xadvance=47 page=0 chnl=15
+char id=52 x=198 y=3 width=47 height=70 xoffset=0 yoffset=1 xadvance=47 page=0 chnl=15
+char id=53 x=247 y=3 width=47 height=71 xoffset=0 yoffset=1 xadvance=47 page=0 chnl=15
+char id=54 x=296 y=2 width=47 height=72 xoffset=0 yoffset=0 xadvance=47 page=0 chnl=15
+char id=55 x=345 y=3 width=47 height=70 xoffset=0 yoffset=1 xadvance=47 page=0 chnl=15
+char id=56 x=394 y=2 width=47 height=72 xoffset=0 yoffset=0 xadvance=47 page=0 chnl=15
+char id=57 x=443 y=2 width=47 height=72 xoffset=0 yoffset=0 xadvance=47 page=0 chnl=15
+char id=45 x=492 y=41 width=28 height=32 xoffset=0 yoffset=39 xadvance=28 page=0 chnl=15
+kernings count=0

@@ -3,5 +3,7 @@
         <font id="HrLarge" filename="hr_large.fnt" filter="0123456789-" antialias="false" />
         <font id="HrSmall" filename="hr_small.fnt" filter="0123456789-" antialias="false" />
         <font id="Spo2" filename="spo2.fnt" filter="0123456789-" antialias="false" />
+        <font id="HrAmbient" filename="hr_ambient.fnt" filter="0123456789-" antialias="false" />
+        <font id="Spo2Ambient" filename="spo2_ambient.fnt" filter="0123456789-" antialias="false" />
     </fonts>
 </resources>

@@ -71,11 +71,11 @@ type.
 ## Always-on (ambient) mode
 
 The Forerunner 265 has an AMOLED panel with Garmin's burn-in protection: an
-always-on face must stay dim and must not leave the same pixels lit for
-minutes. In ambient mode this face switches to thin vector seven-segment
-strokes (same large positions), dims the colours, and shifts the readout a few
-pixels each minute. In normal viewing mode the full normal-font numerals are
-drawn. This keeps the numbers visible all the time without tripping the
-panel protection.
+always-on face must stay dim and must not leave too many pixels lit. In
+ambient mode this face keeps the same normal font and layout, but uses smaller
+numerals (120 px HR, 72 px SpO2), dimmer colours, and shifts the readout a few
+pixels each minute. That keeps the numbers visible all the time without
+tripping the panel protection. Normal viewing mode uses the full-size
+numerals.
 
 ![Ambient preview](docs/preview-ambient.png)
