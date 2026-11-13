@@ -18,9 +18,10 @@ find_apps_dir() {
     user="${USER:-$(id -un)}"
     shopt -s nullglob
 
-    # MTP mounts created by GNOME/gvfs (Forerunner 265).
-    for path in /run/user/"$uid"/gvfs/mtp:host=* /run/user/"$uid"/gvfs/*; do
-        found="$(find "$path" -maxdepth 4 -type d -path '*/GARMIN/APPS' -print -quit 2>/dev/null || true)"
+    # MTP mounts created by GNOME/gvfs (Forerunner 265). The folder is
+    # usually "GARMIN/Apps" but casing varies by firmware.
+    for path in /run/user/"$uid"/gvfs/mtp:host=*; do
+        found="$(find "$path" -maxdepth 4 -type d -ipath '*/GARMIN/APPS' -print -quit 2>/dev/null || true)"
         if [[ -n "$found" ]]; then
             printf '%s\n' "$found"
             return 0
@@ -33,6 +34,10 @@ find_apps_dir() {
             printf '%s\n' "$path/GARMIN/APPS"
             return 0
         fi
+        if [[ -d "$path/GARMIN/Apps" ]]; then
+            printf '%s\n' "$path/GARMIN/Apps"
+            return 0
+        fi
         if [[ -d "$path/APPS" && -f "$path/GarminDevice.xml" ]]; then
             printf '%s\n' "$path/APPS"
             return 0
@@ -41,15 +46,27 @@ find_apps_dir() {
     return 1
 }
 
-if apps_dir="$(find_apps_dir)"; then
-    cp "$PRG" "$apps_dir/BigHeart.prg"
-    sync
-    echo "Installed $apps_dir/BigHeart.prg"
-    echo "Eject the watch, then select Big Heart from the watch-face picker."
-    exit 0
-fi
+copy_to_mtp() {
+    local source="$1"
+    local apps_dir="$2"
+    local uid rel host path uri
+    uid="$(id -u)"
 
-cat >&2 <<'MSG'
+    # /run/user/1000/gvfs/mtp:host=091e_50a1_.../Internal Storage/GARMIN/Apps
+    # -> mtp://091e_50a1_.../Internal%20Storage/GARMIN/Apps/
+    rel="${apps_dir#/run/user/"$uid"/gvfs/}"
+    host="${rel%%/*}"
+    host="${host#mtp:host=}"
+    path="${rel#*/}"
+    path="${path// /%20}"
+    uri="mtp://${host}/${path}/"
+
+    gio copy -p "$source" "$uri"
+}
+
+apps_dir="$(find_apps_dir || true)"
+if [[ -z "$apps_dir" ]]; then
+    cat >&2 <<'MSG'
 No Garmin watch filesystem found.
 
 On the watch:
@@ -71,9 +88,28 @@ On this Linux computer:
       mkdir -p ~/garmin-mtp
       simple-mtpfs ~/garmin-mtp
       find ~/garmin-mtp -type d -name APPS
-      cp bin/BigHeart.prg ~/garmin-mtp/GARMIN/APPS/
+      cp bin/BigHeart.prg ~/garmin-mtp/GARMIN/Apps/
       fusermount -u ~/garmin-mtp
 
-    On some watches the path is ~/garmin-mtp/Primary/GARMIN/APPS instead.
+    On some watches the path is ~/garmin-mtp/Primary/GARMIN/Apps instead.
 MSG
-exit 1
+    exit 1
+fi
+
+if [[ "$apps_dir" == /run/user/"$(id -u)"/gvfs/mtp:host=* ]]; then
+    copy_to_mtp "$PRG" "$apps_dir"
+else
+    cp "$PRG" "$apps_dir/BigHeart.prg"
+    sync
+fi
+
+local_size="$(stat -c %s "$PRG")"
+remote_size="$(stat -c %s "$apps_dir/BigHeart.prg" 2>/dev/null || echo 0)"
+if [[ "$local_size" != "$remote_size" ]]; then
+    echo "Copy failed: expected $local_size bytes, watch has $remote_size." >&2
+    exit 1
+fi
+
+echo "Installed $apps_dir/BigHeart.prg ($remote_size bytes)"
+echo "Eject the watch (press Back on the connect screen), then select Big Heart"
+echo "from the watch-face picker."

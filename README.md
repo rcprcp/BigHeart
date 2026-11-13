@@ -60,12 +60,12 @@ drive. Linux therefore will not show it as a block device in `lsblk`.
    simple-mtpfs --list-devices
    mkdir -p ~/garmin-mtp
    simple-mtpfs ~/garmin-mtp
-   find ~/garmin-mtp -type d -name APPS
-   cp bin/BigHeart.prg ~/garmin-mtp/GARMIN/APPS/
+   find ~/garmin-mtp -type d -iname Apps
+   cp bin/BigHeart.prg ~/garmin-mtp/GARMIN/Apps/
    fusermount -u ~/garmin-mtp
    ```
 
-   Some watches nest the path as `~/garmin-mtp/Primary/GARMIN/APPS`.
+   Some watches nest the path as `~/garmin-mtp/Primary/GARMIN/Apps`.
 6. Eject the watch, then choose **Big Heart** from the watch-face picker
    (Settings → Appearance → Watch Faces). A reboot may be needed on some
    firmware versions.
