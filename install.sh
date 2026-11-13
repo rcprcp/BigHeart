@@ -6,11 +6,12 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-PRG="bin/BigHeart.prg"
+PRG="${1:-bin/BigHeart.prg}"
 if [[ ! -f "$PRG" ]]; then
-    echo "Build first: ./build.sh" >&2
+    echo "Build first: ./build.sh (or ./build-field.sh)" >&2
     exit 1
 fi
+DEST_NAME="$(basename "$PRG")"
 
 find_apps_dir() {
     local uid user path found
@@ -99,17 +100,16 @@ fi
 if [[ "$apps_dir" == /run/user/"$(id -u)"/gvfs/mtp:host=* ]]; then
     copy_to_mtp "$PRG" "$apps_dir"
 else
-    cp "$PRG" "$apps_dir/BigHeart.prg"
+    cp "$PRG" "$apps_dir/$DEST_NAME"
     sync
 fi
 
 local_size="$(stat -c %s "$PRG")"
-remote_size="$(stat -c %s "$apps_dir/BigHeart.prg" 2>/dev/null || echo 0)"
+remote_size="$(stat -c %s "$apps_dir/$DEST_NAME" 2>/dev/null || echo 0)"
 if [[ "$local_size" != "$remote_size" ]]; then
     echo "Copy failed: expected $local_size bytes, watch has $remote_size." >&2
     exit 1
 fi
 
-echo "Installed $apps_dir/BigHeart.prg ($remote_size bytes)"
-echo "Eject the watch (press Back on the connect screen), then select Big Heart"
-echo "from the watch-face picker."
+echo "Installed $apps_dir/$DEST_NAME ($remote_size bytes)"
+echo "Eject the watch (press Back on the connect screen), then select the app."

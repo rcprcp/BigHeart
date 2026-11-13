@@ -20,7 +20,7 @@ class BigHeartView extends WatchUi.WatchFace {
     private const COLOR_BG = 0x000000;
     private const COLOR_HR = 0xFF4D4D;
     private const COLOR_SPO2 = 0x4FB6FF;
-    private const COLOR_TIME = 0x9A9A9A;
+    private const COLOR_TIME = 0xFFFFFF;
 
     // Ambient / always-on colours. Smaller numerals and dim colours keep the
     // face inside Garmin's AMOLED luminance and burn-in rules.
@@ -136,7 +136,7 @@ class BigHeartView extends WatchUi.WatchFace {
         if (svcValue instanceof Lang.Number) {
             bgValue = svcValue as Lang.Number;
         }
-        dc.setColor(0x707070, Graphics.COLOR_TRANSPARENT);
+        dc.setColor(0xFFFFFF, Graphics.COLOR_TRANSPARENT);
         dc.drawText(_centerX, scaledY(0.955),
                     Graphics.FONT_XTINY,
                     _spo2Source + " R" + runCount.format("%d") + ":" + bgValue.format("%d"),
