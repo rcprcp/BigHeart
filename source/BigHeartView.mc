@@ -1,8 +1,8 @@
-import Toybox.Activity;
-import Toybox.Complications;
+import Toybox.Application.Storage;
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.SensorHistory;
+import Toybox.Time;
 import Toybox.System;
 import Toybox.WatchUi;
 
@@ -14,6 +14,7 @@ import Toybox.WatchUi;
 //! Values come from Garmin's sensor history. A watch face cannot turn the
 //! optical sensors on by itself, so the numbers are the most recent samples
 //! the watch already recorded (typically about once a minute).
+(:typecheck(disableBackgroundCheck))
 class BigHeartView extends WatchUi.WatchFace {
 
     private const COLOR_BG = 0x000000;
@@ -41,12 +42,6 @@ class BigHeartView extends WatchUi.WatchFace {
 
     private var _sleeping as Boolean = false;
     private var _spo2Source as String = "?";
-    private var _complicationSubscribed as Boolean = false;
-
-    // The system Pulse Ox complication carries the current reading, the same
-    // value shown by the Pulse Ox glance. SensorHistory can lag behind it.
-    private var _pulseOxId as Complications.Id =
-        new Complications.Id(Complications.COMPLICATION_TYPE_PULSE_OX);
 
     function initialize() {
         WatchFace.initialize();
@@ -63,16 +58,8 @@ class BigHeartView extends WatchUi.WatchFace {
         _hrAmbient = WatchUi.loadResource(Rez.Fonts.HrAmbient) as Graphics.FontReference;
         _spo2Ambient = WatchUi.loadResource(Rez.Fonts.Spo2Ambient) as Graphics.FontReference;
 
-        _complicationSubscribed = Complications.subscribeToUpdates(_pulseOxId);
-        Complications.registerComplicationChangeCallback(method(:onComplicationChange));
     }
 
-    //! Ask for a redraw when the Pulse Ox complication changes.
-    function onComplicationChange(id as Complications.Id) as Void {
-        if (id.equals(_pulseOxId)) {
-            WatchUi.requestUpdate();
-        }
-    }
 
     function onShow() as Void {
     }
@@ -139,10 +126,20 @@ class BigHeartView extends WatchUi.WatchFace {
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
         // Temporary diagnostic line.
+        var runs = Storage.getValue("BigHeartSvcRuns");
+        var svcValue = Storage.getValue("BigHeartSvcValue");
+        var runCount = 0;
+        var bgValue = -1;
+        if (runs instanceof Lang.Number) {
+            runCount = runs as Lang.Number;
+        }
+        if (svcValue instanceof Lang.Number) {
+            bgValue = svcValue as Lang.Number;
+        }
         dc.setColor(0x707070, Graphics.COLOR_TRANSPARENT);
         dc.drawText(_centerX, scaledY(0.955),
                     Graphics.FONT_XTINY,
-                    (_complicationSubscribed ? "S1 " : "S0 ") + _spo2Source,
+                    _spo2Source + " R" + runCount.format("%d") + ":" + bgValue.format("%d"),
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
@@ -223,6 +220,15 @@ class BigHeartView extends WatchUi.WatchFace {
     private function refreshOxygenSaturation() as Void {
         _spo2Text = "--";
 
+        // Background service value (Sensor.getInfo) is the closest a watch
+        // face can get to the live Pulse Ox reading.
+        var current = backgroundOxygenSaturation();
+        if (current >= 0) {
+            _spo2Text = current.format("%d");
+            _spo2Source = "B";
+            return;
+        }
+
         var iterator = oxygenSaturationIterator();
         if (iterator == null) {
             return;
@@ -240,6 +246,19 @@ class BigHeartView extends WatchUi.WatchFace {
         } else {
             _spo2Source = "-";
         }
+    }
+
+    private function backgroundOxygenSaturation() as Number {
+        var value = Storage.getValue("BigHeartSpo2");
+        var when = Storage.getValue("BigHeartSpo2Time");
+        if (value instanceof Lang.Number && when instanceof Lang.Number) {
+            var age = Time.now().value() - (when as Lang.Number);
+            var spo2 = value as Lang.Number;
+            if (age >= 0 && age <= 20 * 60 && spo2 >= 50 && spo2 <= 100) {
+                return spo2;
+            }
+        }
+        return -1;
     }
 
     private function heartRateIterator() as SensorHistoryIterator? {
