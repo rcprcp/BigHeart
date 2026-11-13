@@ -1,33 +1,55 @@
 # Big Heart
 
 A Garmin Connect IQ watch face for the **Forerunner 265** that shows heart rate
-in the largest red numerals that fit the round 416×416 AMOLED screen, with SpO2
-in blue underneath. A small clock sits at the top.
+and SpO2 in the largest normal-font numerals that fit the round 416×416 AMOLED
+screen. Heart rate is red, SpO2 is blue, and a small clock sits at the top.
 
 ![Big Heart preview](docs/preview.png)
 
-## Layout
+## Features
 
-- **Heart rate** — red, up to 195 px tall (156 px for a three-digit value).
+- **Heart rate** — red, up to 195 px tall (156 px for three-digit values).
 - **SpO2** — blue, 104 px tall.
-- **Time** — small grey clock at the top, 12- or 24-hour according to the watch.
+- **Time** — small grey clock at the top, following the watch's 12/24-hour setting.
 - No labels: colour identifies the values.
+- Keeps working in **Always On Display** with a smaller, dimmed layout.
+- Reads Garmin sensor history, so it needs no activity to be recording.
 
 The numerals use a normal condensed sans font (Liberation Sans Narrow Bold)
-converted to large 1-bit bitmap fonts, so they stay crisp and do not need a
-huge font atlas at runtime.
+converted to large 1-bit bitmap fonts. This keeps the glyphs crisp without
+shipping a giant font atlas.
+
+## Requirements
+
+| Item | Requirement |
+| --- | --- |
+| Watch | Forerunner 265 (`fr265`) |
+| Watch firmware | **29.05 or newer** for sideloading the current build |
+| Connect IQ SDK | **9.3.0** (current) |
+| Developer key | RSA 4096-bit Connect IQ signing key |
+| Cable | Garmin data cable (not charge-only) |
+
+Older Forerunner 265 firmware (for example 17.26) rejects PRGs built with
+SDK 9.3.0 with `Signature check failed` in the watch's CIQ log. Update the
+watch first, or build with an SDK from the watch's firmware era.
 
 ## Build
-
-The project uses the Connect IQ SDK and a developer key:
 
 ```bash
 ./build.sh
 ```
 
-This produces `bin/BigHeart.prg`. Override the defaults with
-`CONNECTIQ_SDK=/path/to/sdk` and `CONNECTIQ_KEY=/path/to/developer_key.der`
-if needed.
+This produces `bin/BigHeart.prg`. The script uses the SDK selected in
+`~/.Garmin/ConnectIQ/current-sdk.cfg` and the developer key at
+`~/.Garmin/ConnectIQ/developer_key.der`.
+
+Override them if needed:
+
+```bash
+CONNECTIQ_SDK=/path/to/sdk \
+CONNECTIQ_KEY=/path/to/developer_key.der \
+./build.sh
+```
 
 The fonts in `resources/fonts/` are generated and committed. To recreate them
 after changing a size:
@@ -40,19 +62,27 @@ python3 tools/make_fonts.py
 
 ## Install on the Forerunner 265
 
-The Forerunner 265 exposes its storage over **MTP**, not as a normal USB
-drive. Linux therefore will not show it as a block device in `lsblk`.
+The Forerunner 265 exposes its storage over **MTP**, not as a normal USB block
+device. It will not appear in `lsblk`.
 
-1. Build the app.
-2. On the watch, find **USB Mode** and choose **MTP** (some firmware labels it
-   *Mass Storage*). Do not use *Garmin* mode. Depending on firmware the path is
-   either **UP → System → USB Mode** or **UP → Watch Settings → System →
-   Advanced → USB Mode**. If you cannot find it, leave the default: the watch
-   normally enters MTP automatically when connected to a computer.
-3. Connect the watch with the Garmin data cable, not a charge-only cable.
-4. On Linux, GNOME Files normally mounts the watch automatically. Then run
-   `./install.sh`. It finds both GNOME's MTP mount and older FAT-style Garmin
-   mounts.
+1. Build the app with `./build.sh`.
+2. On the watch, set the USB mode to MTP:
+   - **UP → System → USB Mode → MTP**, or
+   - **UP → Watch Settings → System → Advanced → USB Mode → MTP**
+   - Depending on firmware, the data option may be labelled **Mass Storage**
+     instead of MTP. Do not choose **Garmin** mode.
+   - If the option is missing, leave the default: the watch normally enters
+     MTP automatically when connected to a computer.
+3. Connect the watch with the Garmin data cable.
+4. On Linux, GNOME/gvfs normally mounts the watch automatically. Then run:
+
+   ```bash
+   ./install.sh
+   ```
+
+   The installer finds GNOME's MTP mount (and older FAT-style Garmin
+   mounts), copies `bin/BigHeart.prg` to `GARMIN/Apps/`, verifies the size, and
+   prints the destination.
 5. If the watch does not appear, use an MTP client manually:
 
    ```bash
@@ -66,26 +96,38 @@ drive. Linux therefore will not show it as a block device in `lsblk`.
    ```
 
    Some watches nest the path as `~/garmin-mtp/Primary/GARMIN/Apps`.
-6. Eject the watch, then choose **Big Heart** from the watch-face picker
-   (Settings → Appearance → Watch Faces). A reboot may be needed on some
-   firmware versions.
-7. Accept the sensor-history permission prompt the first time it runs.
+
+6. Press **Back** on the watch's connect screen to eject, then unplug.
+7. Hold **UP → Watch Face**, scroll to the end, and select **Big Heart**.
+   A reboot may be needed on some firmware versions.
+8. Accept the **sensor history** permission prompt the first time it runs.
+
+On newer Garmin firmware the installed `.prg` is moved into hidden storage
+after installation, so it disappears from `GARMIN/Apps` on the next connection.
+That is normal and does not mean the install failed.
 
 To keep the values visible continuously, enable **Always On Display** in the
 watch's display settings.
 
 ## How the values update
 
-A Connect IQ watch face cannot switch the optical sensors on by itself. The
-face reads Garmin's sensor history:
+A Connect IQ watch face cannot switch the optical sensors on by itself. It
+reads Garmin's recorded sensor history:
 
-- Heart rate comes from the watch's normal wrist-HR sampling (typically about
-  once a minute).
-- SpO2 only appears as often as Pulse Ox is configured to measure it. Set
-  **Pulse Ox** to *All Day* (more battery use) or *During Sleep*. With Pulse Ox
-  off or set to manual, SpO2 will usually show `--` or a value from the last
-  measurement.
+- **Heart rate** comes from the watch's normal wrist-HR sampling, typically
+  about once a minute.
+- **SpO2** only appears as often as Pulse Ox is configured to measure it. For
+  daytime readings set **Pulse Ox → All Day**; *During Sleep* works while you
+  sleep. With Pulse Ox off or manual, SpO2 usually shows `--` or an old value.
+- Each value is refreshed on every redraw (wrist raise and at least once per
+  minute), not just once a minute.
+- The face reads the last 10 history samples and keeps the newest valid one.
+  This works around Garmin's SpO2 history quirks: entries can be empty, the
+  requested order is not always honoured, and the first entry is not always the
+  newest.
 - When no valid sample exists, the value is shown as `--`.
+- After installing or enabling Pulse Ox, the first SpO2 reading can take a few
+  minutes to appear.
 
 This is normal for watch faces. For beat-to-beat data you need an activity
 profile or a data field while recording an activity, which is a different app
@@ -93,12 +135,91 @@ type.
 
 ## Always-on (ambient) mode
 
-The Forerunner 265 has an AMOLED panel with Garmin's burn-in protection: an
-always-on face must stay dim and must not leave too many pixels lit. In
-ambient mode this face keeps the same normal font and layout, but uses smaller
-numerals (120 px HR, 72 px SpO2), dimmer colours, and shifts the readout a few
-pixels each minute. That keeps the numbers visible all the time without
-tripping the panel protection. Normal viewing mode uses the full-size
-numerals.
+The Forerunner 265 has an AMOLED panel with Garmin's burn-in protection. An
+always-on face must stay dim and must not leave too many pixels lit.
+
+In ambient mode the face keeps the same normal font and layout, but uses
+smaller numerals (**120 px HR**, **72 px SpO2**), dimmer colours, and shifts
+the readout a few pixels each minute. Normal viewing mode uses the full-size
+195 px / 104 px numerals.
 
 ![Ambient preview](docs/preview-ambient.png)
+
+Three-digit heart rates use the 156 px font in normal mode so the digits still
+fit inside the round display. Three-digit SpO2 values (100%) fit the 104 px
+font.
+
+## Project layout
+
+```text
+manifest.xml                  Connect IQ app manifest (watchface, fr265)
+monkey.jungle                 Build configuration
+source/
+  BigHeartApp.mc              App entry point
+  BigHeartView.mc             Data, layout, full-power and ambient drawing
+resources/
+  drawables/                  Launcher icon
+  fonts/                      Generated BMFont .fnt + .png atlases
+  strings/strings.xml         App name
+tools/
+  make_fonts.py               Regenerates the bitmap fonts
+  preview.py                  Renders previews without the simulator
+docs/                         Preview images used by this README
+build.sh                      Builds bin/BigHeart.prg
+install.sh                    Copies the build to a mounted watch
+```
+
+The fonts are generated at these sizes:
+
+| File | Ink height | Use |
+| --- | --- | --- |
+| `hr_large` | 195 px | 1–2 digit HR |
+| `hr_small` | 156 px | 3 digit HR and `--` |
+| `spo2` | 104 px | SpO2 |
+| `hr_ambient` | 120 px | HR in ambient mode |
+| `spo2_ambient` | 72 px | SpO2 in ambient mode |
+
+## Troubleshooting
+
+**Big Heart is not in the watch-face list**
+Reboot the watch and scroll to the end of the list. Check the Connect IQ app on
+the watch under *Installed*. If the app is missing there, read
+`GARMIN/Apps/LOGS/CIQ_LOG.YML` over MTP.
+
+**`Signature check failed on file: BigHeart`**
+The watch firmware is older than the build SDK. Update the watch firmware, or
+build with a Connect IQ SDK from the watch's firmware era.
+
+**SpO2 stays `--`**
+Check that the Pulse Ox glance on the watch shows a value. If it does, the watch
+has data; the face should pick it up within a minute. If it does not, enable
+**Pulse Ox → All Day** and wear the watch snugly. SpO2 history updates
+periodically, not continuously.
+
+**Watch not detected on Linux**
+Check `lsusb | grep -i 091e`:
+
+- `091e:50a1` — MTP mode; GNOME should mount it under
+  `/run/user/<uid>/gvfs/mtp:host=...`.
+- `091e:0003` — Garmin mode, not MTP; switch USB mode to MTP and reconnect.
+
+Also use a data-capable cable, a direct USB port, and close other MTP clients.
+
+**`cp: Operation not supported` when copying**
+GNOME's MTP mount is a FUSE filesystem. Use `gio copy`, which `install.sh`
+does, or `simple-mtpfs` instead of plain `cp`.
+
+**Where is the CIQ log?**
+Over MTP: `GARMIN/Apps/LOGS/CIQ_LOG.YML`. It contains the reason an install was
+rejected and any runtime crash details.
+
+## Tested configuration
+
+- Garmin Forerunner 265 (`006-B4257-00`)
+- Watch firmware 29.05
+- Connect IQ SDK 9.3.0
+- Linux with GNOME/gvfs MTP
+
+## Font credit
+
+The bitmap fonts are generated from **Liberation Sans Narrow Bold**.
