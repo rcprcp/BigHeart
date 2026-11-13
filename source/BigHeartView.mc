@@ -183,53 +183,85 @@ class BigHeartView extends WatchUi.WatchFace {
     private function refreshHeartRate() as Void {
         _hrText = "--";
 
-        var iterator = SensorHistory.getHeartRateHistory({
-            :period => 24 * 60 * 60,
-            :order => SensorHistory.ORDER_NEWEST_FIRST
-        });
-
-        var sample = iterator.next();
-        if (sample == null) {
+        var iterator = heartRateIterator();
+        if (iterator == null) {
             return;
         }
 
-        var raw = sample.data;
-        if (raw == null) {
-            return;
+        var value = latestValue(iterator, 20, 300, 10);
+        if (value >= 0) {
+            _hrText = value.format("%d");
         }
-
-        var value = sampleValue(raw);
-        if (value < 20 || value > 300) {
-            return;
-        }
-
-        _hrText = value.format("%d");
     }
 
     private function refreshOxygenSaturation() as Void {
         _spo2Text = "--";
 
-        var iterator = SensorHistory.getOxygenSaturationHistory({
-            :period => 24 * 60 * 60,
-            :order => SensorHistory.ORDER_NEWEST_FIRST
-        });
-
-        var sample = iterator.next();
-        if (sample == null) {
+        var iterator = oxygenSaturationIterator();
+        if (iterator == null) {
             return;
         }
 
-        var raw = sample.data;
-        if (raw == null) {
-            return;
+        // SpO2 history has known quirks on real watches: the requested order
+        // is sometimes ignored, and the newest entry can be an empty sample.
+        // Read several entries and keep the valid sample with the newest
+        // timestamp instead of trusting the first one.
+        var value = latestValue(iterator, 50, 100, 10);
+        if (value >= 0) {
+            _spo2Text = value.format("%d");
+        }
+    }
+
+    private function heartRateIterator() as SensorHistoryIterator? {
+        if ((Toybox has :SensorHistory) && (SensorHistory has :getHeartRateHistory)) {
+            // A Number period means "last N samples", not seconds.
+            return SensorHistory.getHeartRateHistory({
+                :period => 10,
+                :order => SensorHistory.ORDER_NEWEST_FIRST
+            });
+        }
+        return null;
+    }
+
+    private function oxygenSaturationIterator() as SensorHistoryIterator? {
+        if ((Toybox has :SensorHistory) && (SensorHistory has :getOxygenSaturationHistory)) {
+            return SensorHistory.getOxygenSaturationHistory({
+                :period => 10,
+                :order => SensorHistory.ORDER_NEWEST_FIRST
+            });
+        }
+        return null;
+    }
+
+    private function latestValue(iterator as SensorHistoryIterator, minimum as Number,
+                                 maximum as Number, maxSamples as Number) as Number {
+        var bestValue = -1;
+        var bestWhen = -1;
+
+        for (var i = 0; i < maxSamples; i++) {
+            var sample = iterator.next();
+            if (sample == null) {
+                break;
+            }
+
+            var raw = sample.data;
+            if (raw == null) {
+                continue;
+            }
+
+            var value = sampleValue(raw);
+            if (value < minimum || value > maximum) {
+                continue;
+            }
+
+            var when = sample.when.value();
+            if (when > bestWhen) {
+                bestWhen = when;
+                bestValue = value;
+            }
         }
 
-        var value = sampleValue(raw);
-        if (value < 50 || value > 100) {
-            return;
-        }
-
-        _spo2Text = value.format("%d");
+        return bestValue;
     }
 
     private function sampleValue(data as Number or Float) as Number {
