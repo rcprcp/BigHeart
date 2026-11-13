@@ -203,10 +203,11 @@ class BigHeartView extends WatchUi.WatchFace {
         }
 
         // SpO2 history has known quirks on real watches: the requested order
-        // is sometimes ignored, and the newest entry can be an empty sample.
-        // Read several entries and keep the valid sample with the newest
-        // timestamp instead of trusting the first one.
-        var value = latestValue(iterator, 50, 100, 10);
+        // is ignored (samples come oldest-first), timestamps can be out of
+        // order, and the newest entry can be empty. Read the whole available
+        // history and keep the last valid sample, which is the newest data on
+        // these devices.
+        var value = lastValidValue(iterator, 50, 100, 1000);
         if (value >= 0) {
             _spo2Text = value.format("%d");
         }
@@ -225,12 +226,39 @@ class BigHeartView extends WatchUi.WatchFace {
 
     private function oxygenSaturationIterator() as SensorHistoryIterator? {
         if ((Toybox has :SensorHistory) && (SensorHistory has :getOxygenSaturationHistory)) {
+            // No period: ask for the entire available history so the newest
+            // sample is included even when ORDER_NEWEST_FIRST is ignored.
             return SensorHistory.getOxygenSaturationHistory({
-                :period => 10,
                 :order => SensorHistory.ORDER_NEWEST_FIRST
             });
         }
         return null;
+    }
+
+    private function lastValidValue(iterator as SensorHistoryIterator, minimum as Number,
+                                    maximum as Number, maxSamples as Number) as Number {
+        var lastValue = -1;
+
+        for (var i = 0; i < maxSamples; i++) {
+            var sample = iterator.next();
+            if (sample == null) {
+                break;
+            }
+
+            var raw = sample.data;
+            if (raw == null) {
+                continue;
+            }
+
+            var value = sampleValue(raw);
+            if (value < minimum || value > maximum) {
+                continue;
+            }
+
+            lastValue = value;
+        }
+
+        return lastValue;
     }
 
     private function latestValue(iterator as SensorHistoryIterator, minimum as Number,
