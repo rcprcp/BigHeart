@@ -1,3 +1,4 @@
+import Toybox.Activity;
 import Toybox.Complications;
 import Toybox.Graphics;
 import Toybox.Lang;
@@ -39,6 +40,8 @@ class BigHeartView extends WatchUi.WatchFace {
     private var _spo2Text as String = "--";
 
     private var _sleeping as Boolean = false;
+    private var _spo2Source as String = "?";
+    private var _complicationSubscribed as Boolean = false;
 
     // The system Pulse Ox complication carries the current reading, the same
     // value shown by the Pulse Ox glance. SensorHistory can lag behind it.
@@ -60,7 +63,7 @@ class BigHeartView extends WatchUi.WatchFace {
         _hrAmbient = WatchUi.loadResource(Rez.Fonts.HrAmbient) as Graphics.FontReference;
         _spo2Ambient = WatchUi.loadResource(Rez.Fonts.Spo2Ambient) as Graphics.FontReference;
 
-        Complications.subscribeToUpdates(_pulseOxId);
+        _complicationSubscribed = Complications.subscribeToUpdates(_pulseOxId);
         Complications.registerComplicationChangeCallback(method(:onComplicationChange));
     }
 
@@ -133,6 +136,13 @@ class BigHeartView extends WatchUi.WatchFace {
 
         dc.setColor(COLOR_SPO2, Graphics.COLOR_TRANSPARENT);
         dc.drawText(_centerX, scaledY(0.788), _spo2 as Graphics.FontReference, _spo2Text,
+                    Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+
+        // Temporary diagnostic line.
+        dc.setColor(0x707070, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(_centerX, scaledY(0.955),
+                    Graphics.FONT_XTINY,
+                    (_complicationSubscribed ? "S1 " : "S0 ") + _spo2Source,
                     Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
@@ -226,6 +236,9 @@ class BigHeartView extends WatchUi.WatchFace {
         var value = lastValidValue(iterator, 50, 100, 1000);
         if (value >= 0) {
             _spo2Text = value.format("%d");
+            _spo2Source = "H";
+        } else {
+            _spo2Source = "-";
         }
     }
 

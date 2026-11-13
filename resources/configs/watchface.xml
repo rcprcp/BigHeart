@@ -1,0 +1,9 @@
+<resources xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <watchface-config>
+        <data>
+            <complication id="1">
+                <type default="true">Complications.COMPLICATION_TYPE_PULSE_OX</type>
+            </complication>
+        </data>
+    </watchface-config>
+</resources>
