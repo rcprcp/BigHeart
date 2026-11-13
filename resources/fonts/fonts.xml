@@ -1,0 +1,7 @@
+<resources xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://developer.garmin.com/downloads/connect-iq/resources.xsd">
+    <fonts>
+        <font id="HrLarge" filename="hr_large.fnt" filter="0123456789-" antialias="false" />
+        <font id="HrSmall" filename="hr_small.fnt" filter="0123456789-" antialias="false" />
+        <font id="Spo2" filename="spo2.fnt" filter="0123456789-" antialias="false" />
+    </fonts>
+</resources>

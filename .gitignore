@@ -2,3 +2,5 @@ bin/
 *.prg
 *.iq
 .DS_Store
+preview_*.png
+__pycache__/

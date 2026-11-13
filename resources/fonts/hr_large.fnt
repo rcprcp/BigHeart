@@ -1,0 +1,16 @@
+info face="BigHeart hr_large" size=-275 bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=0 aa=0 padding=0,0,0,0 spacing=1,1 outline=0
+common lineHeight=195 base=192 scaleW=1351 scaleH=199 pages=1 packed=0 alphaChnl=1 redChnl=0 greenChnl=0 blueChnl=0
+page id=0 file="hr_large.png"
+chars count=11
+char id=48 x=2 y=2 width=125 height=195 xoffset=0 yoffset=0 xadvance=125 page=0 chnl=15
+char id=49 x=129 y=5 width=125 height=189 xoffset=0 yoffset=3 xadvance=125 page=0 chnl=15
+char id=50 x=256 y=2 width=125 height=192 xoffset=0 yoffset=0 xadvance=125 page=0 chnl=15
+char id=51 x=383 y=2 width=125 height=195 xoffset=0 yoffset=0 xadvance=125 page=0 chnl=15
+char id=52 x=510 y=5 width=125 height=189 xoffset=0 yoffset=3 xadvance=125 page=0 chnl=15
+char id=53 x=637 y=5 width=125 height=192 xoffset=0 yoffset=3 xadvance=125 page=0 chnl=15
+char id=54 x=764 y=2 width=125 height=195 xoffset=0 yoffset=0 xadvance=125 page=0 chnl=15
+char id=55 x=891 y=5 width=125 height=189 xoffset=0 yoffset=3 xadvance=125 page=0 chnl=15
+char id=56 x=1018 y=2 width=125 height=195 xoffset=0 yoffset=0 xadvance=125 page=0 chnl=15
+char id=57 x=1145 y=2 width=125 height=195 xoffset=0 yoffset=0 xadvance=125 page=0 chnl=15
+char id=45 x=1272 y=106 width=75 height=88 xoffset=0 yoffset=104 xadvance=75 page=0 chnl=15
+kernings count=0

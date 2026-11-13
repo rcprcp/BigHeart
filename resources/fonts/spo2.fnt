@@ -1,0 +1,16 @@
+info face="BigHeart spo2" size=-147 bold=0 italic=0 charset="" unicode=1 stretchH=100 smooth=0 aa=0 padding=0,0,0,0 spacing=1,1 outline=0
+common lineHeight=105 base=103 scaleW=736 scaleH=109 pages=1 packed=0 alphaChnl=1 redChnl=0 greenChnl=0 blueChnl=0
+page id=0 file="spo2.png"
+chars count=11
+char id=48 x=2 y=2 width=67 height=104 xoffset=0 yoffset=0 xadvance=67 page=0 chnl=15
+char id=49 x=71 y=4 width=67 height=101 xoffset=0 yoffset=2 xadvance=67 page=0 chnl=15
+char id=50 x=140 y=2 width=67 height=103 xoffset=0 yoffset=0 xadvance=67 page=0 chnl=15
+char id=51 x=209 y=2 width=67 height=105 xoffset=0 yoffset=0 xadvance=67 page=0 chnl=15
+char id=52 x=278 y=4 width=67 height=101 xoffset=0 yoffset=2 xadvance=67 page=0 chnl=15
+char id=53 x=347 y=4 width=67 height=102 xoffset=0 yoffset=2 xadvance=67 page=0 chnl=15
+char id=54 x=416 y=2 width=67 height=104 xoffset=0 yoffset=0 xadvance=67 page=0 chnl=15
+char id=55 x=485 y=4 width=67 height=101 xoffset=0 yoffset=2 xadvance=67 page=0 chnl=15
+char id=56 x=554 y=2 width=67 height=104 xoffset=0 yoffset=0 xadvance=67 page=0 chnl=15
+char id=57 x=623 y=2 width=67 height=104 xoffset=0 yoffset=0 xadvance=67 page=0 chnl=15
+char id=45 x=692 y=58 width=40 height=47 xoffset=0 yoffset=56 xadvance=40 page=0 chnl=15
+kernings count=0
