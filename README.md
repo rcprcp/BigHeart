@@ -13,7 +13,10 @@ screen. Heart rate is red, SpO2 is blue, and a small clock sits at the top.
 - **Time** — small grey clock at the top, following the watch's 12/24-hour setting.
 - No labels: colour identifies the values.
 - Keeps working in **Always On Display** with a smaller, dimmed layout.
-- Reads Garmin sensor history, so it needs no activity to be recording.
+- Uses the system Pulse Ox complication for current SpO2, with sensor-history
+  fallback.
+- Reads Garmin sensor history for heart rate, so no activity needs to be
+  recording.
 
 The numerals use a normal condensed sans font (Liberation Sans Narrow Bold)
 converted to large 1-bit bitmap fonts. This keeps the glyphs crisp without
@@ -116,15 +119,18 @@ reads Garmin's recorded sensor history:
 
 - **Heart rate** comes from the watch's normal wrist-HR sampling, typically
   about once a minute.
-- **SpO2** only appears as often as Pulse Ox is configured to measure it. For
+- **SpO2** is read from the system **Pulse Ox complication**
+  (`COMPLICATION_TYPE_PULSE_OX`), which is the same current reading shown by
+  the Pulse Ox glance. The face subscribes to complication changes, so it
+  updates when a new reading is available.
+- If the Pulse Ox complication has no value, the face falls back to the last
+  valid sensor-history sample. Garmin's SpO2 history can be oldest-first,
+  contain empty entries, and lag behind the live reading.
+- SpO2 only appears as often as Pulse Ox is configured to measure it. For
   daytime readings set **Pulse Ox → All Day**; *During Sleep* works while you
   sleep. With Pulse Ox off or manual, SpO2 usually shows `--` or an old value.
 - Each value is refreshed on every redraw (wrist raise and at least once per
   minute), not just once a minute.
-- The face reads the last 10 history samples and keeps the newest valid one.
-  This works around Garmin's SpO2 history quirks: entries can be empty, the
-  requested order is not always honoured, and the first entry is not always the
-  newest.
 - When no valid sample exists, the value is shown as `--`.
 - After installing or enabling Pulse Ox, the first SpO2 reading can take a few
   minutes to appear.
@@ -191,10 +197,11 @@ The watch firmware is older than the build SDK. Update the watch firmware, or
 build with a Connect IQ SDK from the watch's firmware era.
 
 **SpO2 stays `--`**
-Check that the Pulse Ox glance on the watch shows a value. If it does, the watch
-has data; the face should pick it up within a minute. If it does not, enable
-**Pulse Ox → All Day** and wear the watch snugly. SpO2 history updates
-periodically, not continuously.
+Check that the Pulse Ox glance on the watch shows a value. If it does, the
+complication should provide the same value; the face falls back to sensor
+history if the complication is unavailable. If the glance is also empty, enable
+**Pulse Ox → All Day** and wear the watch snugly. SpO2 measurements are
+periodic, not continuous.
 
 **Watch not detected on Linux**
 Check `lsusb | grep -i 091e`:
@@ -208,6 +215,11 @@ Also use a data-capable cable, a direct USB port, and close other MTP clients.
 **`cp: Operation not supported` when copying**
 GNOME's MTP mount is a FUSE filesystem. Use `gio copy`, which `install.sh`
 does, or `simple-mtpfs` instead of plain `cp`.
+
+**SpO2 does not match the glance**
+The face subscribes to the system Pulse Ox complication (`ComplicationSubscriber`
+permission). If the complication is unavailable, it uses the last valid
+sensor-history sample, which can be older than the glance.
 
 **Where is the CIQ log?**
 Over MTP: `GARMIN/Apps/LOGS/CIQ_LOG.YML`. It contains the reason an install was
