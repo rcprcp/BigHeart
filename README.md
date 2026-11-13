@@ -40,14 +40,33 @@ python3 tools/make_fonts.py
 
 ## Install on the Forerunner 265
 
+The Forerunner 265 exposes its storage over **MTP**, not as a normal USB
+drive. Linux therefore will not show it as a block device in `lsblk`.
+
 1. Build the app.
-2. Connect the watch by USB. It mounts as a removable drive.
-3. Either run `./install.sh`, or copy `bin/BigHeart.prg` into the watch's
-   `GARMIN/APPS/` folder manually.
-4. Eject the watch, then choose **Big Heart** from the watch-face picker
+2. On the watch, hold **UP** → **System** → **USB Mode** and choose **MTP**
+   (some firmware labels it *Mass Storage*). Do not use *Garmin* mode.
+3. Connect the watch with the Garmin data cable, not a charge-only cable.
+4. On Linux, GNOME Files normally mounts the watch automatically. Then run
+   `./install.sh`. It finds both GNOME's MTP mount and older FAT-style Garmin
+   mounts.
+5. If the watch does not appear, use an MTP client manually:
+
+   ```bash
+   sudo apt install simple-mtpfs
+   simple-mtpfs --list-devices
+   mkdir -p ~/garmin-mtp
+   simple-mtpfs ~/garmin-mtp
+   find ~/garmin-mtp -type d -name APPS
+   cp bin/BigHeart.prg ~/garmin-mtp/GARMIN/APPS/
+   fusermount -u ~/garmin-mtp
+   ```
+
+   Some watches nest the path as `~/garmin-mtp/Primary/GARMIN/APPS`.
+6. Eject the watch, then choose **Big Heart** from the watch-face picker
    (Settings → Appearance → Watch Faces). A reboot may be needed on some
    firmware versions.
-5. Accept the sensor-history permission prompt the first time it runs.
+7. Accept the sensor-history permission prompt the first time it runs.
 
 To keep the values visible continuously, enable **Always On Display** in the
 watch's display settings.
