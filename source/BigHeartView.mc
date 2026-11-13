@@ -38,8 +38,6 @@ class BigHeartView extends WatchUi.WatchFace {
     private var _spo2Text as String = "--";
 
     private var _sleeping as Boolean = false;
-    private var _lastRefreshMin as Number = -1;
-    private var _lastRefreshHour as Number = -1;
 
     function initialize() {
         WatchFace.initialize();
@@ -77,12 +75,11 @@ class BigHeartView extends WatchUi.WatchFace {
         var clock = System.getClockTime();
         var lowPower = isLowPower();
 
-        if (clock.min != _lastRefreshMin || clock.hour != _lastRefreshHour) {
-            refreshHeartRate();
-            refreshOxygenSaturation();
-            _lastRefreshMin = clock.min;
-            _lastRefreshHour = clock.hour;
-        }
+        // Refresh on every update. Watch faces are redrawn on wrist raise and
+        // at least once a minute, and the values can appear as soon as the
+        // watch records its first sensor-history sample.
+        refreshHeartRate();
+        refreshOxygenSaturation();
 
         dc.setColor(COLOR_BG, COLOR_BG);
         dc.clear();
