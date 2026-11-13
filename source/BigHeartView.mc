@@ -1,3 +1,4 @@
+import Toybox.Complications;
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.SensorHistory;
@@ -39,6 +40,11 @@ class BigHeartView extends WatchUi.WatchFace {
 
     private var _sleeping as Boolean = false;
 
+    // The system Pulse Ox complication carries the current reading, the same
+    // value shown by the Pulse Ox glance. SensorHistory can lag behind it.
+    private var _pulseOxId as Complications.Id =
+        new Complications.Id(Complications.COMPLICATION_TYPE_PULSE_OX);
+
     function initialize() {
         WatchFace.initialize();
     }
@@ -53,6 +59,16 @@ class BigHeartView extends WatchUi.WatchFace {
         _spo2 = WatchUi.loadResource(Rez.Fonts.Spo2) as Graphics.FontReference;
         _hrAmbient = WatchUi.loadResource(Rez.Fonts.HrAmbient) as Graphics.FontReference;
         _spo2Ambient = WatchUi.loadResource(Rez.Fonts.Spo2Ambient) as Graphics.FontReference;
+
+        Complications.subscribeToUpdates(_pulseOxId);
+        Complications.registerComplicationChangeCallback(method(:onComplicationChange));
+    }
+
+    //! Ask for a redraw when the Pulse Ox complication changes.
+    function onComplicationChange(id as Complications.Id) as Void {
+        if (id.equals(_pulseOxId)) {
+            WatchUi.requestUpdate();
+        }
     }
 
     function onShow() as Void {
