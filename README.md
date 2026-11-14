@@ -139,6 +139,57 @@ This is normal for watch faces. For beat-to-beat data you need an activity
 profile or a data field while recording an activity, which is a different app
 type.
 
+## Exporting HR and SpO2 history
+
+The watch face cannot write files: Connect IQ has no filesystem API. To collect
+a long-term history for analysis, use `tools/export_health.py`, which reads
+Garmin's own FIT recordings on a computer and writes plain CSV files.
+
+Get the data either from:
+
+- **Garmin Connect**: *Account Settings → Data Management → Export Your Data*.
+  Garmin emails a download link; the zip contains `*_WELLNESS.fit` files.
+- **The watch over USB/MTP**: copy the `GARMIN/Monitor` folder. Heart rate is
+  present there, but Pulse Ox readings may only exist in the Garmin Connect
+  export. Run with `--inspect` first to see which messages are available.
+
+Install the dependency and run the exporter:
+
+```bash
+python3 -m pip install -r tools/requirements.txt
+python3 tools/export_health.py ~/Downloads/garmin_export.zip -o health_export
+```
+
+The script merges heart rate from `monitoring` messages (including samples that
+only carry a 16-bit timestamp) with SpO2 from `spo2_data` and `hsa_spo2_data`
+messages. It sorts and de-duplicates samples and writes one file per **local**
+day, named from the day and the first sample:
+
+```text
+health_export/HR_SpO2_2026-11-13_170500.csv
+```
+
+Each file starts with a header and uses ISO-8601 timestamps:
+
+```csv
+timestamp_utc,timestamp_local,hr_bpm,spo2_pct
+2026-11-13T22:05:00Z,2026-11-13T17:05:00-05:00,64,96
+2026-11-13T22:06:00Z,2026-11-13T17:06:00-05:00,66,
+```
+
+Useful options:
+
+- `--inspect` — print the FIT message types and sample counts without writing.
+- `--tz Europe/Berlin` — local timestamps and daily rollover in a named zone.
+  The default uses this computer's local timezone, including DST rules.
+- `--template '{date}-health.csv'` — custom filename; `{date}` and `{time}` are
+  replaced. The default is `HR_SpO2_{date}_{time}.csv`.
+- `--merge` — merge into CSVs already in the output directory, so repeated
+  partial exports accumulate instead of overwriting.
+
+Tests: `python3 -m unittest tools.test_export_health -v` (the end-to-end tests
+are skipped when `garmin-fit-sdk` is not installed).
+
 ## Always-on (ambient) mode
 
 The Forerunner 265 has an AMOLED panel with Garmin's burn-in protection. An
@@ -170,6 +221,8 @@ resources/
 tools/
   make_fonts.py               Regenerates the bitmap fonts
   preview.py                  Renders previews without the simulator
+  export_health.py            Exports FIT-based HR/SpO2 history to daily CSV
+  requirements.txt            Python dependency for the exporter
 docs/                         Preview images used by this README
 build.sh                      Builds bin/BigHeart.prg
 install.sh                    Copies the build to a mounted watch

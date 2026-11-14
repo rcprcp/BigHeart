@@ -4,3 +4,4 @@ bin/
 .DS_Store
 preview_*.png
 __pycache__/
+health_export/
